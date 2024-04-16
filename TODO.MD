@@ -1,0 +1,22 @@
+## Rotation in the composition module
+
+- ~~Nose needs to be rotated specially because of vertical angle~~
+- ~~Theres is a bug in 03-Rosin.png, mouth is placed on the top left of the image?~~
+- ~~Instead of turning black pixels in hair to white, make sure to only change black pixels outside the mask~~
+- ~~Remove white from cartoons so that they dont overlap with white boxes~~
+- ~~Draw face outline~~
+- ~~Nose bug (should be fixed, needs testing)~~
+- ~~Write test scripts complete with mask and KID scores~~
+- ~~Add tests for random and symmetric components~~
+- ~~Run FID score test on old dataset and new including random symettric and non-symmetric for each level~~
+- ~~Create histogram from old output for component match count~~
+- ~~Write test to compare hair length label to ground truth~~
+- ~~Compare results with last iteration~~
+- Implement closed and open mouth and eyes
+- Implement Flow DoG
+- Add in some face lines
+- Implement hair position probability based on distance from closest non-zero probability
+- Test fid score with added face lines
+- Test fid score with open and closed eyes/mouths
+- Test hair mask stats with improved distance probability
+- Compare results again including FID scores etc..
