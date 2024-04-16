@@ -7,7 +7,7 @@ e.g:
 ```$ python -m tests.full_test .\data\test-set\ .\data\```
 
 ## To run dataset creation set:
-```$ python -m scripts.create_fid_cartoons D:\cartoonset10k\cartoonset10k\ D:\````
+```$ python -m scripts.create_fid_cartoons D:\cartoonset10k\cartoonset10k\ D:\```
 
 ## To run histogram creation script for version1 test output:
 ```$ python -m scripts.create_histogram D:\projects\face-cartoon-generator\output\ARCHIVED-TESTS-DNC\v1-testing-results\testing_results.json D:\projects\face-cartoon-generator\output\ARCHIVED-TESTS-DNC\v1-testing-results\```
