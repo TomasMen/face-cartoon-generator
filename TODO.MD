@@ -1,5 +1,4 @@
-## Rotation in the composition module
-
+## TODO
 - ~~Nose needs to be rotated specially because of vertical angle~~
 - ~~Theres is a bug in 03-Rosin.png, mouth is placed on the top left of the image?~~
 - ~~Instead of turning black pixels in hair to white, make sure to only change black pixels outside the mask~~
