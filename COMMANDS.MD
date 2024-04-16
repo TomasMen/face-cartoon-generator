@@ -1,7 +1,7 @@
 ## To run main program for one image:
 ```$ python -m main <image_path> <data_dir_path>```
 e.g:
-    python -m main .\data\test-set\face-images\level-1\02-22636558997-80ee36b602-o.png .\data\
+```$ python -m main .\data\test-set\face-images\level-1\02-22636558997-80ee36b602-o.png .\data\```
 
 ## To run test use:
 ```$ python -m tests.full_test .\data\test-set\ .\data\```
