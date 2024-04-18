@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import maxflow
 
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from .face_landmarker import FaceLandmarker
+from modules.utils.face_landmarker import FaceLandmarker
 from scipy.ndimage import gaussian_filter
 
 # Interpupillary distance (distance between eyes)
@@ -44,6 +44,30 @@ class HairSegmentation:
                 self.color_distribution = pickle.load(f)
         else:
             self._load_training_data()
+
+        self._spread_out_position_distribution()
+
+    def _spread_out_position_distribution(self):
+        for h_type in self.hair_likelihood_distribution:
+            leftmost = min(x for x, _ in self.hair_likelihood_distribution[h_type].keys())
+            topmost = min(y for _, y in self.hair_likelihood_distribution[h_type].keys())
+
+            shifted_positions = {(x - leftmost, y - topmost): value for (x, y), value in self.hair_likelihood_distribution[h_type].items()}
+
+            max_x = max(x for x, _ in shifted_positions.keys())
+            max_y = max(y for _, y in shifted_positions.keys())
+
+            hair_pos_image = np.zeros((max_y + 1, max_x + 1), dtype=np.float32)
+            for (x, y), value in shifted_positions.items():
+                hair_pos_image[y, x] = value
+
+            blurred_pos_image = gaussian_filter(hair_pos_image, 0.5)
+            non_seen_pixels = np.argwhere(hair_pos_image == 0)
+            for y, x in non_seen_pixels:
+                hair_pos_image[y, x] = blurred_pos_image[y, x]
+            for y in range(hair_pos_image.shape[0]):
+                for x in range(hair_pos_image.shape[1]):
+                    self.hair_likelihood_distribution[h_type][(x+leftmost, y+topmost)] = hair_pos_image[y, x] 
 
     def _load_training_data(self):
         masks_path = os.path.join(self.training_set_path, "masks")
@@ -286,6 +310,18 @@ class HairSegmentation:
 
         return color_bins_image, hair_pos_images
 
+    def _find_largest_connected_component(self, mask):
+        _, binary_mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
+
+        _, labels, stats, _ = cv2.connectedComponentsWithStats(binary_mask, connectivity=8)
+
+        largest_component = 1 + np.argmax(stats[1:, cv2.CC_STAT_AREA])  # Find the largest non-background component
+
+        largest_mask = np.zeros_like(mask, dtype=np.uint8)
+        largest_mask[labels == largest_component] = 255
+
+        return largest_mask
+
     def segment_hair(self, image, landmarks=None, h_type=None):
         if not landmarks:
             landmarks = self.landmark_detector.detect_landmarks(image)
@@ -305,17 +341,21 @@ class HairSegmentation:
 
         preprocessed_image_ycrcb = cv2.cvtColor(preprocessed_image, cv2.COLOR_BGR2YCrCb)
         average_contrast = self._calculate_average_contrast(preprocessed_image_ycrcb)
-        # print(f"Average contrast: {average_contrast}")
+
         # Avoid log(0)
         epsilon = 1e-8
+
+
         for y in range(height):
             for x in range(width):
                 node_index = y * width + x
                 relative_coord = tuple(np.asarray([x, y]) - reference_point)
+
                 if relative_coord in self.hair_likelihood_distribution[hair_type]: 
                     hair_pos_likelihood = self.hair_likelihood_distribution[hair_type][relative_coord]
                 else:
                     hair_pos_likelihood = 0
+
                 pixel_color = preprocessed_image_ycrcb[y, x][1:3]
                 observed_energy_hair = -1.0 * (np.log(self.color_distribution[*tuple(pixel_color//4)] + epsilon) + np.log(hair_pos_likelihood + epsilon))
                 observed_energy_background = -1.0 * (np.log(1 - self.color_distribution[*tuple(pixel_color//4)] + epsilon) + np.log(1-hair_pos_likelihood + epsilon))
@@ -360,7 +400,11 @@ class HairSegmentation:
         inverse_rotation_matrix = cv2.invertAffineTransform(rotation_matrix)
         rotated_mask = cv2.warpAffine(scaled_hair_mask, inverse_rotation_matrix, (scaled_hair_mask.shape[1], scaled_hair_mask.shape[0]))
 
-        return rotated_mask, hair_type
+        kernel = np.ones((3, 3), np.uint8)
+        dilated_mask = cv2.dilate(rotated_mask, kernel, iterations=5)
+        largest_component_mask = self._find_largest_connected_component(dilated_mask) 
+
+        return largest_component_mask, hair_type
 
 if __name__ == "__main__":
     current_path = os.path.abspath(__file__)
@@ -371,20 +415,20 @@ if __name__ == "__main__":
     landmarker = FaceLandmarker(model_path)
     segmentation = HairSegmentation(training_set_path)
 
-    image_path = os.path.join(current_dir, "../../data/test-faces/level-1/08-Moid-Rasheedi.png")
+    image_path = os.path.join(current_dir, "../../data/test-set/face-images/level-1/08-Moid-Rasheedi.png")
 
     image = cv2.imread(image_path)
 
     landmarks = landmarker.detect_landmarks(image)
 
-    # heatmap, hair_pos_images = segmentation.visualise_distributions()
+    heatmap, hair_pos_images = segmentation.visualise_distributions()
 
     # cv2.imwrite("C:\\Users\\yap\\Desktop\\heatmap.png", heatmap)
     # cv2.imwrite("C:\\Users\\yap\\Desktop\\short_hair.png", hair_pos_images["short"])
     # cv2.imwrite("C:\\Users\\yap\\Desktop\\long_hair.png", hair_pos_images["long"])
 
     kernel = np.ones((3, 3), np.uint8)
-    hair_mask = segmentation.segment_hair(image, landmarks, "short")
+    hair_mask, hair_type = segmentation.segment_hair(image, landmarks)
     hair_mask = cv2.morphologyEx(hair_mask, cv2.MORPH_CLOSE, kernel) 
 
     # print(hair_mask)
@@ -398,8 +442,8 @@ if __name__ == "__main__":
 
     alpha = overlay_image[:, :, 3] / 255.0
     blended_image = cv2.convertScaleAbs(image * (1 - alpha)[:, :, np.newaxis] + overlay_image[:, :, :3] * alpha[:, :, np.newaxis])
-
-    cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
+    #
+    # cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
     cv2.imshow('Image', blended_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
