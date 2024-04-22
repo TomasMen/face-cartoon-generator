@@ -11,11 +11,8 @@
 - ~~Create histogram from old output for component match count~~
 - ~~Write test to compare hair length label to ground truth~~
 - ~~Compare results with last iteration~~
-- Implement closed and open mouth and eyes
+- ~~Implement closed and open mouth~~
 - ~~Implement hair position probability based on distance from closest non-zero probability~~
-- Add in some face lines
-- Test fid score with added face lines
-- Test fid score with open and closed eyes/mouths
+- Test fid score with open and closed mouths
 - Test hair mask stats with improved distance probability
 - Compare results again including FID scores etc..
-- !Implement Flow DoG

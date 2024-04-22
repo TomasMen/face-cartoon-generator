@@ -6,8 +6,8 @@ import random
 from .utils.face_classes import Component, ComponentType
 
 def calculate_moments(image) -> list:
-    _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY)
-    inverted_image = cv2.bitwise_not(binary_image)
+    # _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY)
+    inverted_image = cv2.bitwise_not(image)
     moments = cv2.moments(inverted_image)
     hu_moments = cv2.HuMoments(moments)
 
@@ -29,7 +29,21 @@ def get_matching_components(face_composite, cartoon_database) -> tuple[dict[Comp
         max_x, max_y = [max(landmark[index] for landmark in face_composite.components[component_name].landmarks) for index in [0, 1]]
         min_x, min_y = [min(landmark[index] for landmark in face_composite.components[component_name].landmarks) for index in [0, 1]]
 
-        cartoon_components = cartoon_database[component_name]
+        if component_name == ComponentType.MOUTH:
+            mouth_top, mouth_bottom, inner_top, inner_bottom = [face_composite.landmarks[index] for index in [0, 17, 13, 14]] 
+            mouth_height = mouth_bottom[1] - mouth_top[1]
+            print(f"Mouth height:{mouth_height}")
+            lip_dist = inner_bottom[1] - inner_top[1] 
+            print(f"Lip distance:{lip_dist}")
+
+            if lip_dist > 0.2 * mouth_height:
+                print("Mouth open")
+                cartoon_components = cartoon_database[component_name]["open"]
+            else:
+                print("Mouth closed")
+                cartoon_components = cartoon_database[component_name]["closed"]
+        else:
+            cartoon_components = cartoon_database[component_name]
 
         component_cutout = face_composite.line_image[min_y:max_y+1, min_x:max_x+1]
 

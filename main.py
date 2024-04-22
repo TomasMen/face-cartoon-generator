@@ -45,6 +45,13 @@ def main(image_path, data_path, output_path):
     original_image_gray = cv2.cvtColor(face_composite.image, cv2.COLOR_BGR2GRAY)
     steps_image = cv2.hconcat([original_image_gray, face_composite.hair_mask, face_composite.line_image, final_cartoon])
 
+    landmark_image = cv2.cvtColor(original_image_gray, cv2.COLOR_GRAY2BGR)
+    for x, y in [face_composite.landmarks[index] for index in [0, 17, 13, 14]]:
+        cv2.circle(landmark_image, (x, y), 2, (0, 255, 0))
+
+    landmark_output_path = os.path.join(output_dir, "landmarks.jpg")
+    cv2.imwrite(landmark_output_path, landmark_image)
+
     cv2.imwrite(steps_output_path, steps_image)
 
     info_output_path = os.path.join(output_dir, "info.json")
