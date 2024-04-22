@@ -6,12 +6,15 @@ import random
 from .utils.face_classes import Component, ComponentType
 
 def calculate_moments(image) -> list:
-    moments = cv2.moments(image)
+    _, binary_image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY)
+    inverted_image = cv2.bitwise_not(binary_image)
+    moments = cv2.moments(inverted_image)
     hu_moments = cv2.HuMoments(moments)
 
+    epsilon = 1e-10
     hu_moments_log = [0.0 for _ in range(len(hu_moments))]
     for i in range(7):
-        hu_moments_log[i] = -1 * math.copysign(1.0, hu_moments[i]) * math.log10(abs(hu_moments[i]))
+        hu_moments_log[i] = -1 * math.copysign(1.0, hu_moments[i]) * math.log10(abs(hu_moments[i]) + epsilon)
 
     return hu_moments_log
 

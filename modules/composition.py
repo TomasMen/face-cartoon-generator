@@ -19,6 +19,7 @@ def compose_cartoon(face_composite: FaceComposite, matched_cartoon_components):
     canvas = np.ones_like(face_composite.line_image) * 255
 
     hair_c = face_composite.components[ComponentType.HAIR]
+    hair_c.image = cv2.medianBlur(hair_c.image, 5)
     mask_white_pixels = np.nonzero(face_composite.hair_mask == 255)
     canvas[mask_white_pixels] = hair_c.image[mask_white_pixels]
 

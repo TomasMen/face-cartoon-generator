@@ -5,6 +5,7 @@ from scipy.ndimage import gaussian_filter
 
 K = 1.6
 P = 21.7 # Image sharpness
+# P = 5.0
 PHI = 0.017 # Sharpness of activation falloff, typical range [0.75, 5.0] (essentially how dark the lines are)
 EPSILON = 79.5 
 SIGMA = 1.4

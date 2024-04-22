@@ -85,8 +85,14 @@ def main(test_set_path, data_path, output_path, limit_num_images=None):
                 os.makedirs(dir, exist_ok=True)
 
             all_images_image_path = os.path.join(all_images_dir, "normal", image_filename)
+            all_images_image_path_level = os.path.join(all_images_dir, "normal", level_dir, image_filename)
+            os.makedirs(os.path.dirname(all_images_image_path_level), exist_ok=True)
             symmetric_images_image_path = os.path.join(all_images_dir, "symmetric", image_filename)
+            symmetric_images_image_path_level = os.path.join(all_images_dir, "symmetric", level_dir, image_filename)
+            os.makedirs(os.path.dirname(symmetric_images_image_path_level), exist_ok=True)
             random_images_image_path = os.path.join(all_images_dir, "random", image_filename)
+            random_images_image_path_level = os.path.join(all_images_dir, "random", level_dir, image_filename)
+            os.makedirs(os.path.dirname(random_images_image_path_level), exist_ok=True)
 
             image = cv2.imread(image_path)
             truth_hair_mask = cv2.imread(hair_mask_path, cv2.IMREAD_UNCHANGED)
@@ -107,13 +113,15 @@ def main(test_set_path, data_path, output_path, limit_num_images=None):
 
             cv2.imwrite(cartoon_output_path, final_cartoon)
             cv2.imwrite(all_images_image_path, final_cartoon)
+            cv2.imwrite(all_images_image_path_level, final_cartoon)
 
             cv2.imwrite(cartoon_symmetric_output_path, final_cartoon_symmetric)
             cv2.imwrite(symmetric_images_image_path, final_cartoon_symmetric)
+            cv2.imwrite(symmetric_images_image_path_level, final_cartoon_symmetric)
 
             cv2.imwrite(cartoon_random_output_path, final_cartoon_random)
             cv2.imwrite(random_images_image_path, final_cartoon_random)
-
+            cv2.imwrite(random_images_image_path_level, final_cartoon_random)
 
             steps_output_path = os.path.join(output_image_path, "process-steps.jpg")
             original_image_gray = cv2.cvtColor(face_composite.image, cv2.COLOR_BGR2GRAY)
