@@ -11,6 +11,7 @@ from modules.extraction import extract_components
 from modules.matching import get_matching_components
 from modules.composition import compose_cartoon
 
+from modules.utils.face_classes import ComponentType
 from modules.utils.face_landmarker import FaceLandmarker
 from modules.utils.hair_segmentation import HairSegmentation
 from modules.utils.asset_loading import load_database
@@ -35,9 +36,15 @@ def main(test_set_path, data_path, output_path, limit_num_images=None):
 
     cartoon_matches_histogram = {}
     for c_type in cartoon_database:
-        cartoon_matches_histogram[c_type] = {}
-        for filename, _ in cartoon_database[c_type]:
-            cartoon_matches_histogram[c_type][filename] = 0
+        if c_type == ComponentType.MOUTH:
+            cartoon_matches_histogram[c_type] = {}
+            mouths = cartoon_database[c_type]["open"] + cartoon_database[c_type]["closed"]
+            for filename, _ in mouths:
+                cartoon_matches_histogram[c_type][filename] = 0
+        else:
+            cartoon_matches_histogram[c_type] = {}
+            for filename, _ in cartoon_database[c_type]:
+                cartoon_matches_histogram[c_type][filename] = 0
     hairmask_stats = {}
 
     overall_info_output_path = os.path.join(test_output_dir, "info.json")
