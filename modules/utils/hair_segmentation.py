@@ -11,6 +11,7 @@ import maxflow
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from modules.utils.face_landmarker import FaceLandmarker
 from scipy.ndimage import gaussian_filter
+from scipy.stats import norm
 
 # Interpupillary distance (distance between eyes)
 DESIRED_IPD = 100
@@ -33,6 +34,12 @@ class HairSegmentation:
         self.training_set_path = training_set_path
         self.hair_likelihood_distribution = { 'short': collections.defaultdict(float), 'long': collections.defaultdict(float) } 
         self.color_distribution = np.zeros((64, 64), dtype=float) 
+
+        x_values = np.linspace(0, 255, 256)
+        mu = 127
+        sigma = 60
+        y_values = norm.pdf(x_values, mu, sigma)
+        self.normalized_y_values = y_values / max(y_values)
         
         trainset_directory = os.path.dirname(self.training_set_path)
         hair_likelihood_path = os.path.join(trainset_directory, 'hair_likelihood_distribution.pkl')
@@ -45,7 +52,7 @@ class HairSegmentation:
         else:
             self._load_training_data()
 
-        self._spread_out_position_distribution()
+        # self._spread_out_position_distribution()
 
     def _spread_out_position_distribution(self):
         for h_type in self.hair_likelihood_distribution:
@@ -140,7 +147,6 @@ class HairSegmentation:
                     self.color_distribution[*(color_val//4)] += 1
 
             self.color_distribution /= np.max(self.color_distribution)
-            # self.color_distribution = gaussian_filter(self.color_distribution, 1)
 
             for relative_coord in self.hair_likelihood_distribution[subdir]:
                 self.hair_likelihood_distribution[subdir][relative_coord] /= image_count
@@ -356,9 +362,14 @@ class HairSegmentation:
                 else:
                     hair_pos_likelihood = 0
 
+                pixel_brightness = preprocessed_image_ycrcb[y, x][0]
                 pixel_color = preprocessed_image_ycrcb[y, x][1:3]
-                observed_energy_hair = -1.0 * (np.log(self.color_distribution[*tuple(pixel_color//4)] + epsilon) + np.log(hair_pos_likelihood + epsilon))
-                observed_energy_background = -1.0 * (np.log(1 - self.color_distribution[*tuple(pixel_color//4)] + epsilon) + np.log(1-hair_pos_likelihood + epsilon))
+                # observed_energy_hair = -1.0 * (np.log(self.color_distribution[*tuple(pixel_color//4)] + epsilon) + np.log(hair_pos_likelihood + epsilon))
+                # observed_energy_background = -1.0 * (np.log(1 - self.color_distribution[*tuple(pixel_color//4)] + epsilon) + np.log(1-hair_pos_likelihood + epsilon))
+
+                # Gaussian weight to account for color accuracy
+                observed_energy_hair =  (-1.0) * (self.normalized_y_values[pixel_brightness] * np.log(self.color_distribution[*tuple(pixel_color//4)] + epsilon) + np.log(hair_pos_likelihood + epsilon))
+                observed_energy_background =  (-1.0) * (self.normalized_y_values[pixel_brightness] * np.log(1 - self.color_distribution[*tuple(pixel_color//4)] + epsilon) + np.log(1-hair_pos_likelihood + epsilon))
                 
                 graph.add_tedge(nodes[node_index], observed_energy_hair, observed_energy_background)
 

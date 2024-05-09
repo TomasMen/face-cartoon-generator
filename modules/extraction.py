@@ -4,6 +4,7 @@ from .utils.hair_segmentation import HairSegmentation
 from .utils.image_processing import detect_lines_xdog 
 
 import numpy as np
+import cv2
 
 def extract_components(image, face_landmarker: FaceLandmarker, hair_segmentation: HairSegmentation) -> FaceComposite:
     landmark_indexes = {

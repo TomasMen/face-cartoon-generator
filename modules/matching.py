@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import math
 import random
+ 
 
 from .utils.face_classes import Component, ComponentType
 
@@ -32,15 +33,12 @@ def get_matching_components(face_composite, cartoon_database) -> tuple[dict[Comp
         if component_name == ComponentType.MOUTH:
             mouth_top, mouth_bottom, inner_top, inner_bottom = [face_composite.landmarks[index] for index in [0, 17, 13, 14]] 
             mouth_height = mouth_bottom[1] - mouth_top[1]
-            print(f"Mouth height:{mouth_height}")
+            # print(f"Mouth height:{mouth_height}")
             lip_dist = inner_bottom[1] - inner_top[1] 
-            print(f"Lip distance:{lip_dist}")
 
             if lip_dist > 0.2 * mouth_height:
-                print("Mouth open")
                 cartoon_components = cartoon_database[component_name]["open"]
             else:
-                print("Mouth closed")
                 cartoon_components = cartoon_database[component_name]["closed"]
         else:
             cartoon_components = cartoon_database[component_name]
