@@ -1,5 +1,6 @@
 # Generation of Facial Cartoons
 An exploration of the use of different computer vision techniques to generate facial cartoons from real images.
+This program is able to automatically generate a cartoon image from a given real input by using a database of cartoon components.
 
 ## Examples
 <img src="./examples.jpg" alt="Image input vs output">
