@@ -13,6 +13,6 @@
 - ~~Compare results with last iteration~~
 - ~~Implement closed and open mouth~~
 - ~~Implement hair position probability based on distance from closest non-zero probability~~
-- Test fid score with open and closed mouths
-- Test hair mask stats with improved distance probability
-- Compare results again including FID scores etc..
+- ~~Test fid score with open and closed mouths~~
+- ~~Test hair mask stats with improved distance probability~~
+- ~~Compare results again including FID scores etc..~~
